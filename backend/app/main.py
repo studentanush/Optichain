@@ -8,9 +8,18 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.schemas import BriefResponse, HealthResponse, SimulateRequest, SimulateResponse, SimulatePoint
+from app.schemas import (
+    BriefResponse,
+    ForecastRequest,
+    ForecastResponse,
+    HealthResponse,
+    SimulateRequest,
+    SimulateResponse,
+    SimulatePoint,
+)
 from app.services import artifacts, tables
 from app.services.brief import build_weekly_brief
+from app.services.demand_agent import run_forecast_agent
 from app.services.risk_engine import compute_risks, count_signal_spikes
 
 _state: dict[str, Any] = {
@@ -243,3 +252,16 @@ def kpis_dashboard() -> dict[str, Any]:
         "signal_spikes": spikes,
         "total_inventory_skus": len(inv) if inv is not None else 0,
     }
+
+
+@app.post("/api/demand/forecast", response_model=ForecastResponse)
+def demand_forecast(body: ForecastRequest) -> ForecastResponse:
+    """Three-model demand forecasting agent endpoint."""
+    result = run_forecast_agent(
+        product_id=body.product_id,
+        city=body.city,
+        date=body.date,
+        influencer=body.influencer.model_dump() if body.influencer else None,
+        campaign_active=body.campaign_active,
+    )
+    return ForecastResponse(**result)

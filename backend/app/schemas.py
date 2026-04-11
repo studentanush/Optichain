@@ -42,3 +42,40 @@ class BriefResponse(BaseModel):
     overstock_count: int
     signal_spikes: int
     generated_at: str
+
+
+# ── Demand Forecast Agent ──────────────────────────────────────────────────
+
+class InfluencerInput(BaseModel):
+    id: str | None = None
+    followers: float | None = None
+    engagement_rate: float | None = None
+    platform: str | None = None
+
+
+class ForecastRequest(BaseModel):
+    product_id: str
+    city: str
+    date: str
+    influencer: InfluencerInput | None = None
+    campaign_active: bool = False
+
+
+class ForecastBreakdown(BaseModel):
+    baseline: float
+    influencer_lift_units: float
+    city_growth_units: float
+
+
+class ForecastUplift(BaseModel):
+    enabled: bool
+    peak_lift_pct: float
+    lift_curve: list[float]
+    decay_lambda: float
+
+
+class ForecastResponse(BaseModel):
+    final_demand: float
+    breakdown: ForecastBreakdown
+    uplift: ForecastUplift
+    insights: list[str]

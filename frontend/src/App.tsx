@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import DemandForecastPage from './DemandForecastPage';
 import {
   Bar,
   BarChart,
@@ -158,6 +159,7 @@ function RiskTable({ risks }: { risks: Risk[] }) {
 }
 
 export default function App() {
+  const [activePage, setActivePage] = useState<'dashboard' | 'forecast'>('dashboard');
   const [health, setHealth] = useState<Health | null>(null);
   const [kpis, setKpis] = useState<Kpis | null>(null);
   const [skus, setSkus] = useState<SkuMeta[]>([]);
@@ -280,6 +282,33 @@ export default function App() {
             <h1 className="font-display text-2xl font-semibold text-white">Supply chain control tower</h1>
           </div>
           <div className="flex items-center gap-3">
+            {/* Page tabs */}
+            <div className="flex rounded-lg border border-surface-border bg-surface overflow-hidden">
+              <button
+                id="nav-tab-dashboard"
+                type="button"
+                onClick={() => setActivePage('dashboard')}
+                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                  activePage === 'dashboard'
+                    ? 'bg-accent text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                id="nav-tab-forecast"
+                type="button"
+                onClick={() => setActivePage('forecast')}
+                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                  activePage === 'forecast'
+                    ? 'bg-violet-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                ⚡ Demand Forecast
+              </button>
+            </div>
             {health ? (
               <span
                 className={`text-xs px-3 py-1 rounded-full border ${
@@ -300,7 +329,10 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+      {activePage === 'forecast' ? (
+        <DemandForecastPage />
+      ) : (
+        <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
         {loadErr ? (
           <div className="rounded-lg border border-danger/40 bg-danger/10 text-danger px-4 py-3">
             {loadErr} — is the backend running on port 8000?
@@ -524,7 +556,8 @@ export default function App() {
             </section>
           </>
         )}
-      </main>
+        </main>
+      )}
     </div>
   );
 }
