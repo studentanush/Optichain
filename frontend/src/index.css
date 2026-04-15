@@ -12,3 +12,21 @@ body {
 #root {
   min-height: 100vh;
 }
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+  .animate-success-flash {
+    animation: successFlash 1.5s ease-out forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes successFlash {
+    0% { outline: 2px solid rgba(139, 92, 246, 0); }
+    10% { outline: 2px solid rgba(139, 92, 246, 0.6); outline-offset: 4px; }
+    100% { outline: 2px solid rgba(139, 92, 246, 0); outline-offset: 12px; }
+  }
+}

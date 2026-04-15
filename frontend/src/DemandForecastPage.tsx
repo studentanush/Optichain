@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Area,
   AreaChart,
@@ -221,10 +221,20 @@ export default function DemandForecastPage() {
   const [result, setResult] = useState<ForecastResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Auto-clear success state
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => setShowSuccess(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess]);
 
   async function runForecast() {
     setLoading(true);
     setError(null);
+    setShowSuccess(false);
     try {
       const body: ForecastRequest = {
         product_id: productId.trim() || 'SKU-001',
@@ -242,6 +252,7 @@ export default function DemandForecastPage() {
       };
       const res = await postJson<ForecastResponse>('/api/demand/forecast', body);
       setResult(res);
+      setShowSuccess(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Forecast failed');
     } finally {
@@ -250,7 +261,20 @@ export default function DemandForecastPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0e1a 0%, #0f1420 50%, #0c1118 100%)' }}>
+    <div className="min-h-screen relative" style={{ background: 'linear-gradient(135deg, #0a0e1a 0%, #0f1420 50%, #0c1118 100%)' }}>
+      {/* Toast Notification */}
+      {showSuccess && (
+        <div className="fixed top-6 right-6 z-50 animate-fade-in">
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md px-4 py-3 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+            <span className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</span>
+            <div>
+              <p className="text-white text-sm font-semibold">Forecast Updated</p>
+              <p className="text-emerald-300/70 text-[10px] uppercase tracking-widest">3-Model Pipeline Complete</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Page header ── */}
       <div className="border-b border-white/5 bg-white/[0.02] backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-wrap items-center justify-between gap-4">
@@ -444,9 +468,19 @@ export default function DemandForecastPage() {
         </div>
 
         {/* ── RIGHT: Results panel ── */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-6 relative">
+          {/* Loading Overlay */}
+          {loading && result && (
+            <div className="absolute inset-x-0 -inset-y-2 z-40 rounded-2xl bg-[#0a0e1a]/40 backdrop-blur-[2px] flex items-center justify-center animate-fade-in">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-2 border-violet-500/20 border-t-violet-500 rounded-full animate-spin" />
+                <p className="text-violet-300 text-xs font-medium tracking-widest uppercase">Calculating Demand...</p>
+              </div>
+            </div>
+          )}
+
           {result ? (
-            <>
+            <div className={`space-y-6 transition-all duration-500 ${loading ? 'opacity-30 scale-[0.99] grayscale' : 'opacity-100 scale-100'} ${showSuccess ? 'animate-success-flash' : ''}`}>
               {/* Final demand hero */}
               <GlowCard className="!p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 rounded-2xl opacity-20" style={{ background: 'radial-gradient(ellipse at 50% 0%, #8b5cf6 0%, transparent 70%)' }} />
@@ -527,7 +561,7 @@ export default function DemandForecastPage() {
                   {JSON.stringify(result, null, 2)}
                 </pre>
               </details>
-            </>
+            </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center py-24 text-center gap-4">
               <div

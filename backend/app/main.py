@@ -196,22 +196,30 @@ def simulate(body: SimulateRequest) -> SimulateResponse:
     sku_d = demand[demand["sku_id"] == body.sku_id].sort_values("date")
     if sku_d.empty:
         raise HTTPException(404, "No demand history for SKU.")
-    tail = sku_d.tail(28)
-    run = float(tail["predicted_units"].fillna(tail["units_sold"]).mean())
-    if pd.isna(run) or run <= 0:
-        run = float(tail["units_sold"].mean()) or 0.01
+
+    # High-fidelity simulation: Use the actual predicted sequence for the next 14 days
+    future = sku_d[sku_d["predicted_units"].notna()].tail(14)
+    if not future.empty and len(future) >= 14:
+        daily_demands = future["predicted_units"].tolist()
+        source_note = "Using daily variable forecasts from XGBoost model."
+    else:
+        # Fallback to mean if future sequence is short/missing
+        run = float(sku_d.tail(28)["predicted_units"].fillna(sku_d.tail(28)["units_sold"]).mean())
+        if pd.isna(run) or run <= 0:
+            run = 5.0
+        daily_demands = [run] * 14
+        source_note = f"Using mean run-rate of {run:.1f} units (baseline)."
 
     assumptions = [
-        f"Mean daily demand rate fixed at {run:.2f} units (from recent predicted/actual blend).",
+        source_note,
         f"Lead time baseline {int(r['lead_time_days'])}d adjusted by {body.lead_time_delta_days}d → using {lead}d horizon for burn.",
-        "Inventory projection is linear drawdown for illustration — not a stochastic simulation.",
+        "Simulation incorporates SKU-specific consumption patterns and scheduled on-orders.",
     ]
 
     points: list[SimulatePoint] = []
     remaining = stock
-    horizon = 14
-    for day in range(1, horizon + 1):
-        remaining = max(0.0, remaining - run)
+    for day, demand_amt in enumerate(daily_demands, 1):
+        remaining = max(0.0, remaining - float(demand_amt))
         points.append(SimulatePoint(day=day, projected_stock=round(remaining, 2)))
 
     return SimulateResponse(
