@@ -1,65 +1,56 @@
-# Supply chain analytics
+# Supply chain analytics platform
 
-End-to-end demo that connects **MODEL1** (tabular demand: Random Forest / XGBoost / LightGBM winner saved as `best_model.pkl`) and **MODEL2** (seven influencer lift regressors) to a **FastAPI** backend and a **Vite + React + Tailwind** control-tower UI. The **LSTM notebook** is not used in this pipeline.
+This project is a full-stack supply chain analytics dashboard that integrates multiple machine learning models to provide demand forecasting, inventory risk management, and what-if simulations. It connects a Python FastAPI backend with a React-based frontend dashboard.
+
+## Machine learning pipeline
+
+The system uses a three-model pipeline to generate high-fidelity demand forecasts:
+
+1.  **Baseline Model (Model 1)**: An XGBoost regressor trained on historical tabular demand data. It captures multi-year seasonality and product-specific trends.
+2.  **Influencer Uplift (Model 2)**: A multi-target regressor bundle that predicts peak uplift and decay curves triggered by influencer marketing campaigns across various social platforms.
+3.  **City Growth (Conti Model)**: A LightGBM model that incorporates external economic indicators (income velocity, home prices, and affordability ratios) to adjust demand forecasts based on local city-level growth.
 
 ## Prerequisites
 
 - Python 3.10+
-- Node 18+
-- Notebook outputs: `ws_demand_dataset/ml_ready_data.csv`, optional `ws_model/best_model.pkl` + `feature_cols.pkl`, optional `features_engineered.csv` + `models/*_best.pkl`
+- Node.js 18+
+- Active internet connection for Google Fonts and Tailwind CSS
 
-## 1. Generate demand data and train MODEL1
+## Getting started
 
-Open and run [`MODEL1_XGBOOST.ipynb`](MODEL1_XGBOOST.ipynb) through the dataset, feature-engineering, and training cells. This creates:
+### 1. Initialize data and models
 
-- `ws_demand_dataset/ml_ready_data.csv`
-- `ws_model/best_model.pkl` and `ws_model/feature_cols.pkl`
-
-## 2. (Optional) Train MODEL2
-
-Run [`MODEL2_ML.ipynb`](MODEL2_ML.ipynb) to produce `features_engineered.csv`, `models/{target}_best.pkl`, and `models/{target}_features.json`. The dashboard shows influencer RMSE bars when `analytics/influencer_metrics.json` exists.
-
-**Quick demo (no notebook):** from the repo root, train seven sklearn models on synthetic data (no CatBoost) and write the same file layout:
+Before running the dashboard, you must generate the required datasets and train the models. From the repository root, run the following scripts in sequence:
 
 ```bash
+# Train the City Growth (Conti) model
+python conti_script.py
+
+# Train the Baseline XGBoost model
+python model1_script.py
+
+# Train the Influencer Uplift model bundle (demo version)
 python scripts/seed_and_train_influencer_demo.py
-```
 
-Then run step 3 and **restart** the API so it reloads the new `models/*.pkl` files.
-
-## 3. Build analytics and case-study tables
-
-From the **repository root**:
-
-```bash
+# Generate analytics tables and inventory datasets
 python scripts/build_case_study_tables.py
 ```
 
-This writes:
+### 2. Start the backend
 
-- `analytics/demand_with_predictions.csv` — MODEL1 predictions (or a rolling fallback if pickles are missing)
-- `analytics/sales_timeseries.csv`
-- `data/inventory.csv` — synthetic inventory with deliberate stockout/overstock stress cases
-- `data/signals.csv` — daily social/search-style signals per SKU
-- `analytics/influencer_metrics.json` and `analytics/influencer_sample.csv` when MODEL2 artifacts exist
-
-## 4. Run the API
+The backend is built with FastAPI and handles all ML inference and data aggregation.
 
 ```bash
 cd backend
 python -m venv .venv
-.venv\Scripts\activate
+source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
 pip install -r requirements.txt
-# If influencer models were trained with CatBoost, also: pip install catboost
-copy .env.example .env
-python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-On macOS/Linux use `source .venv/bin/activate` and `cp` instead of `copy`.
+### 3. Start the frontend
 
-Optional: set `PROJECT_ROOT` in `backend/.env` if you start uvicorn from another working directory.
-
-## 5. Run the frontend
+The frontend is a React application powered by Vite and Tailwind CSS.
 
 ```bash
 cd frontend
@@ -67,27 +58,35 @@ npm install
 npm run dev
 ```
 
-The Vite dev server proxies `/api` to `http://127.0.0.1:8000`. Open the printed local URL (usually `http://localhost:5173`).
+The dashboard will be available at http://127.0.0.1:5173.
 
-To call a remote API instead, set `VITE_API_URL` in `frontend/.env`.
+## Main features
 
-## API overview
+### Demand forecasting agent
+The agent provides a real-time forecast by combining the outputs of the three-model pipeline. It includes visual feedback such as loading overlays and success notifications to ensure high-fidelity interactions.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/health` | Artifact and model load status |
-| GET | `/api/kpis/dashboard` | Aggregated KPIs |
-| GET | `/api/meta/skus` | SKU list |
-| GET | `/api/demand/timeseries?sku_id=` | Actual vs predicted |
-| GET | `/api/signals/timeseries?sku_id=` | External signals |
-| GET | `/api/inventory/summary` | Inventory rows |
-| GET | `/api/risk/skus` | Stockout / overstock register |
-| GET | `/api/brief/weekly` | Template buyer brief |
-| POST | `/api/simulate` | What-if inventory drawdown |
-| GET | `/api/influencer/summary` | MODEL2 metrics + loader status |
+### Unified risk register
+Automatically identifies SKUs at risk of stockout or overstock by comparing current inventory levels against lead times and predicted demand volatility.
 
-## Project layout
+### What-if simulation
+Allows for real-time inventory drawdown simulations. Unlike simple linear models, this simulation uses the specific daily variable forecasts from the XGBoost model to show detailed projected stock levels over a 14-day horizon.
 
-- `backend/app` — FastAPI application
-- `frontend/` — React dashboard
-- `scripts/build_case_study_tables.py` — ETL and synthetic inventory/signals
+## API reference
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| GET | /api/health | Verifies status of models and data files |
+| GET | /api/kpis/dashboard | Returns key supply chain metrics |
+| GET | /api/meta/skus | Provides a list of available products |
+| GET | /api/demand/timeseries | Actual vs predicted demand history |
+| POST | /api/demand/forecast | Executes the 3-model forecasting agent |
+| POST | /api/simulate | Runs a model-driven inventory simulation |
+| GET | /api/brief/weekly | Generates an AI-driven buyer brief |
+
+## Project structure
+
+- **backend/**: FastAPI application, schemas, and ML inference services.
+- **frontend/**: React components, Recharts visualizations, and dashboard pages.
+- **models/**: Trained model artifacts (.pkl).
+- **analytics/**: Processed data tables and prediction results.
+- **scripts/**: ETL processes and data sanitization utilities.
