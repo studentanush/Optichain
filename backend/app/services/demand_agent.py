@@ -1,181 +1,122 @@
-"""
-Demand Forecasting Agent — three-model pipeline.
-
-Model 1 : Baseline Demand      → baseline_demand (units)
-Model 2 : Influencer Uplift    → lift_curve, peak_lift_pct, decay_lambda
-Model 3 : City Growth          → city_extra_units
-
-All models are implemented as calibrated analytical functions that produce
-realistic, deterministic outputs from the supplied features.  They never
-expose internal implementation details to callers.
-"""
-from __future__ import annotations
-
 import hashlib
 import math
+import pandas as pd
+import numpy as np
 from typing import Any
+from datetime import datetime
 
 # ---------------------------------------------------------------------------
-# Deterministic seeding helpers
+# City Profiles for Conti Model Synthesis
 # ---------------------------------------------------------------------------
-
-def _hash_seed(*parts: Any) -> float:
-    """Return a stable float in [0, 1) from any set of values."""
-    raw = "|".join(str(p) for p in parts)
-    digest = int(hashlib.sha256(raw.encode()).hexdigest(), 16)
-    return (digest % 10_000) / 10_000.0
-
-
-def _jitter(base: float, seed: float, spread: float = 0.15) -> float:
-    """Add deterministic ±spread noise around base."""
-    return base * (1.0 + spread * (seed * 2 - 1))
-
-
-# ---------------------------------------------------------------------------
-# City engagement coefficients (lookup table — stable across calls)
-# ---------------------------------------------------------------------------
-
-CITY_GROWTH_RATES: dict[str, float] = {
-    "mumbai":     0.14,
-    "delhi":      0.12,
-    "bangalore":  0.18,
-    "bengaluru":  0.18,
-    "hyderabad":  0.15,
-    "chennai":    0.11,
-    "pune":       0.13,
-    "kolkata":    0.09,
-    "ahmedabad":  0.10,
-    "jaipur":     0.08,
-    "surat":      0.07,
-    "new york":   0.20,
-    "los angeles":0.17,
-    "london":     0.16,
-    "dubai":      0.22,
-    "singapore":  0.19,
-    "tokyo":      0.13,
-    "paris":      0.14,
-    "sydney":     0.15,
-    "toronto":    0.16,
+CITY_PROFILES = {
+    "Mumbai": {"wealth": 1.2, "luxury_sensitivity": 1.4, "income": 55000, "house_price": 450000},
+    "Delhi": {"wealth": 1.1, "luxury_sensitivity": 1.2, "income": 50000, "house_price": 380000},
+    "Bangalore": {"wealth": 1.3, "luxury_sensitivity": 1.5, "income": 65000, "house_price": 420000},
+    "Hyderabad": {"wealth": 1.15, "luxury_sensitivity": 1.1, "income": 48000, "house_price": 350000},
+    "New York": {"wealth": 1.8, "luxury_sensitivity": 2.0, "income": 85000, "house_price": 850000},
+    "London": {"wealth": 1.6, "luxury_sensitivity": 1.8, "income": 75000, "house_price": 750000},
+    "Dubai": {"wealth": 2.0, "luxury_sensitivity": 2.2, "income": 95000, "house_price": 950000},
 }
-
-PLATFORM_MULTIPLIERS: dict[str, float] = {
-    "instagram": 1.20,
-    "tiktok":    1.35,
-    "youtube":   1.10,
-    "twitter":   1.05,
-    "x":         1.05,
-    "facebook":  0.95,
-    "pinterest": 1.00,
-    "snapchat":  1.08,
-    "linkedin":  0.85,
-}
-
-
-# ---------------------------------------------------------------------------
-# Model 1 — Baseline Demand
-# ---------------------------------------------------------------------------
-
-def model1_baseline(product_id: str, city: str, date: str) -> float:
-    """Return baseline demand units for the given product × city × date."""
-    # Build a stable seed from inputs
-    s1 = _hash_seed("m1", product_id, city)
-    s2 = _hash_seed("m1d", date)
-
-    # Base demand varies by product (100–600 units range)
-    base = 150.0 + s1 * 450.0
-
-    # Seasonal factor extracted from date string (YYYY‑MM‑DD or partial)
-    try:
-        month = int(date[5:7]) if len(date) >= 7 else 6
-    except (ValueError, IndexError):
-        month = 6
-    seasonal = 1.0 + 0.25 * math.sin((month - 3) * math.pi / 6)
-
-    # City‑level demand multiplier
-    city_key = city.lower().strip()
-    city_boost = 1.0 + CITY_GROWTH_RATES.get(city_key, 0.10) * 0.5
-
-    # Small day‑level noise
-    noisy = _jitter(base * seasonal * city_boost, s2, spread=0.08)
-    return round(max(1.0, noisy), 2)
-
-
-# ---------------------------------------------------------------------------
-# Model 2 — Influencer Uplift
-# ---------------------------------------------------------------------------
+DEFAULT_PROFILE = {"wealth": 1.0, "luxury_sensitivity": 1.0, "income": 40000, "house_price": 300000}
 
 LIFT_HOURS = [6, 12, 24, 48, 72, 96]
 
+def _get_profile(city: str):
+    return CITY_PROFILES.get(city, DEFAULT_PROFILE)
 
-def model2_uplift(
-    product_id: str,
-    influencer_id: str,
-    followers: float,
-    engagement_rate: float,
-    platform: str,
-    date: str,
-) -> dict:
-    """
-    Return:
-      lift_curve      : list[float]  — fractional lift at each hour (6►96)
-      peak_lift_pct   : float        — maximum lift percentage (0‑100)
-      decay_lambda    : float        — exponential decay constant
-    """
-    seed = _hash_seed("m2", product_id, influencer_id, platform)
-
-    # Scale followers to a 0‑1 reach factor (log scale, cap at 10M)
-    reach = math.log10(max(followers, 1_000)) / math.log10(10_000_000)
-
-    # Engagement quality — clamp 0‑1
-    eng = min(max(engagement_rate, 0.0), 1.0)
-
-    # Platform multiplier
-    plat_mult = PLATFORM_MULTIPLIERS.get(platform.lower().strip(), 1.0)
-
-    # Peak lift (%) — up to ~60 % for mega‑influencers with high engagement
-    raw_peak = 5.0 + reach * 35.0 + eng * 20.0
-    peak_lift_pct = _jitter(raw_peak * plat_mult, seed, spread=0.10)
-    peak_lift_pct = round(min(max(peak_lift_pct, 2.0), 80.0), 2)
-
-    # Decay lambda controls how fast the lift fades
-    # Higher engagement → slower decay (longer tail)
-    decay_lambda = round(_jitter(0.025 + (1 - eng) * 0.015, seed, spread=0.15), 4)
-
-    # Build lift curve: peaks at 24h then decays
-    def _curve_value(h: int) -> float:
-        if h <= 24:
-            ramp = h / 24.0
-            return round(peak_lift_pct * ramp, 3)
+def _synthesize_m1_features(product_id: str, city: str, date_str: str, feature_names: list[str]) -> pd.DataFrame:
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    profile = _get_profile(city)
+    
+    # Map brand/category based on SKU prefix for demo
+    brand_enc = 0 if "WS" in product_id else 1 if "PB" in product_id else 2
+    cat_enc = hash(product_id) % 10
+    
+    feats = {}
+    for col in feature_names:
+        if col == "month": feats[col] = dt.month
+        elif col == "day_of_week": feats[col] = dt.weekday()
+        elif col == "week_of_year": feats[col] = dt.isocalendar()[1]
+        elif col == "quarter": feats[col] = (dt.month - 1) // 3 + 1
+        elif col == "is_weekend": feats[col] = 1 if dt.weekday() >= 5 else 0
+        elif col == "is_q4": feats[col] = 1 if dt.month >= 10 else 0
+        elif col == "day_of_month": feats[col] = dt.day
+        elif col == "brand_enc": feats[col] = brand_enc
+        elif col == "category_enc": feats[col] = cat_enc
+        elif "decay" in col or "overlap" in col or "pipeline" in col or "spring" in col:
+            feats[col] = 0.0 # Default events to 0 for now
+        elif "days_to" in col:
+            feats[col] = 365 # Default to far away
+        elif "lag" in col or "rolling" in col:
+            feats[col] = 20.0 # Default baseline lag
+        elif col == "trend_ratio_7_30":
+            feats[col] = 1.0
+        elif col == "ltv_tier_enc": feats[col] = 1
+        elif col == "channel_enc": feats[col] = 2
+        elif col == "is_gift_buyer": feats[col] = 0
+        elif col == "is_registry_buyer": feats[col] = 0
+        elif col == "conversion_rate": feats[col] = 0.85
+        elif col == "active_registries": feats[col] = 0
+        elif col == "items_fulfilled_this_month": feats[col] = 0
         else:
-            extra = h - 24
-            return round(peak_lift_pct * math.exp(-decay_lambda * extra), 3)
+            feats[col] = 0.0
+            
+    return pd.DataFrame([feats])
 
-    lift_curve = [_curve_value(h) for h in LIFT_HOURS]
+def _synthesize_m2_features(influencer: dict, feature_names: list[str]) -> pd.DataFrame:
+    # Influencer models in demo were trained on demo_feat_0..17
+    # We map influencer stats to these floats
+    n = len(feature_names)
+    followers = float(influencer.get("followers") or 50000)
+    eng_rate = float(influencer.get("engagement_rate") or 0.03)
+    
+    # Scale followers to a 0-1 range roughly
+    reach = math.log10(max(followers, 1000)) / 7.0 # up to 10M
+    
+    data = {}
+    for i, col in enumerate(feature_names):
+        if i == 0: data[col] = reach
+        elif i == 1: data[col] = eng_rate * 10
+        elif i == 2: data[col] = 1.0 if influencer.get("platform") == "instagram" else 0.0
+        elif col == "ws_flag": data[col] = 1
+        else:
+            # Deterministic noise for other demo feats
+            data[col] = (hash(col) % 100) / 100.0
+            
+    return pd.DataFrame([data])
 
-    return {
-        "lift_curve": lift_curve,
-        "peak_lift_pct": peak_lift_pct,
-        "decay_lambda": decay_lambda,
+def _synthesize_conti_features(city: str, product_id: str, date_str: str, feature_names: list[str]) -> pd.DataFrame:
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    profile = _get_profile(city)
+    
+    # Conti features: day_of_year, month, median_income, median_home_price, 
+    # affordability_ratio, income_velocity_30d, price_velocity_30d, rolling_units_30d, etc.
+    
+    base_feats = {
+        "day_of_year": dt.timetuple().tm_yday,
+        "month": dt.month,
+        "median_income": profile["income"],
+        "median_home_price": profile["house_price"],
+        "affordability_ratio": profile["house_price"] / profile["income"],
+        "income_velocity_30d": 0.02 * profile["wealth"], # Synthetic growth
+        "price_velocity_30d": 0.01,
+        "rolling_units_30d": 15.0,
     }
-
-
-# ---------------------------------------------------------------------------
-# Model 3 — City Growth
-# ---------------------------------------------------------------------------
-
-def model3_city_growth(city: str, product_id: str, baseline: float) -> float:
-    """Return extra units from city‑specific demand growth trends."""
-    city_key = city.lower().strip()
-    growth_rate = CITY_GROWTH_RATES.get(city_key, 0.10)
-
-    seed = _hash_seed("m3", city, product_id)
-    extra = baseline * growth_rate * _jitter(1.0, seed, spread=0.12)
-    return round(max(0.0, extra), 2)
-
-
-# ---------------------------------------------------------------------------
-# Agent orchestrator
-# ---------------------------------------------------------------------------
+    
+    # Handle dummy encoding if present in feature_names (e.g. city_City_B)
+    data = {}
+    for col in feature_names:
+        if col in base_feats:
+            data[col] = base_feats[col]
+        elif col.startswith("city_"):
+            target_city = col.split("_")[-1]
+            data[col] = 1 if city == target_city else 0
+        elif col == "category_Standard":
+            data[col] = 0 # Assume Luxury by default
+        else:
+            data[col] = 0.0
+            
+    return pd.DataFrame([data])
 
 def run_forecast_agent(
     product_id: str,
@@ -183,95 +124,86 @@ def run_forecast_agent(
     date: str,
     influencer: dict | None,
     campaign_active: bool,
+    models: dict[str, Any],
 ) -> dict:
     """
-    Execute the three‑model pipeline and return a clean, frontend‑ready JSON.
-
-    Returns
-    -------
-    {
-        "final_demand": float,
-        "breakdown": {"baseline": float, "influencer_lift_units": float, "city_growth_units": float},
-        "uplift": {"enabled": bool, "peak_lift_pct": float, "lift_curve": list[float], "decay_lambda": float},
-        "insights": list[str],
-    }
+    Execute the three-model pipeline using actual loaded ML artifacts.
     """
-
-    # ── Step 1: Baseline ──────────────────────────────────────────────────
-    baseline = model1_baseline(product_id, city, date)
-
-    # ── Step 2: Influencer Uplift ─────────────────────────────────────────
-    uplift_enabled = (
-        campaign_active
-        and influencer is not None
-        and influencer.get("id") is not None
-    )
-
-    if uplift_enabled:
-        inf = influencer  # type: ignore[assignment]
-        m2 = model2_uplift(
-            product_id=product_id,
-            influencer_id=str(inf.get("id", "")),
-            followers=float(inf.get("followers") or 50_000),
-            engagement_rate=float(inf.get("engagement_rate") or 0.03),
-            platform=str(inf.get("platform") or "instagram"),
-            date=date,
-        )
-        peak_lift_pct = m2["peak_lift_pct"]
-        lift_curve = m2["lift_curve"]
-        decay_lambda = m2["decay_lambda"]
-    else:
-        peak_lift_pct = 0.0
-        lift_curve = [0.0] * len(LIFT_HOURS)
-        decay_lambda = 0.0
-
-    # ── Step 3: City Growth ───────────────────────────────────────────────
-    city_extra_units = model3_city_growth(city, product_id, baseline)
-
-    # ── Step 4: Final Demand ──────────────────────────────────────────────
-    influencer_lift_units = round(baseline * (peak_lift_pct / 100.0), 2)
-    final_demand = round(
-        max(0.0, baseline * (1 + peak_lift_pct / 100.0) + city_extra_units), 2
-    )
-
-    # ── Insight generation ────────────────────────────────────────────────
-    city_key = city.lower().strip()
-    city_growth_rate_pct = round(
-        CITY_GROWTH_RATES.get(city_key, 0.10) * 100, 1
-    )
-
     insights: list[str] = []
 
+    # 1. Baseline Model (XGBoost)
+    m1 = models.get("model1")
+    m1_feats = models.get("model1_feats")
+    if m1 and m1_feats:
+        X1 = _synthesize_m1_features(product_id, city, date, m1_feats)
+        baseline = float(m1.predict(X1)[0])
+        insights.append("Baseline demand synthesized from XGBoost signals.")
+    else:
+        baseline = 150.0 # Fallback
+        insights.append("⚠️ Baseline using fallback (Model 1 not loaded).")
+
+    # 2. Influencer Model Bundle
+    peak_lift_pct = 0.0
+    lift_curve = [0.0] * len(LIFT_HOURS)
+    decay_lambda = 0.0
+    
+    uplift_enabled = bool(campaign_active and influencer and influencer.get("id"))
     if uplift_enabled:
-        plat = str((influencer or {}).get("platform", "social")).capitalize()
-        insights.append(
-            f"{plat} campaign drives {peak_lift_pct:.1f}% demand uplift."
-        )
-        # Peak impact timing is always at 24h based on model curve
-        insights.append(
-            "Peak impact expected within 24 hours of campaign launch."
-        )
+        bundle = models.get("model2_bundle", {})
+        feat_map = models.get("model2_feats", {})
+        
+        if bundle and "peak_lift_pct" in bundle:
+            # We assume all M2 models in the bundle share the same feature set structure
+            first_target = list(feat_map.keys())[0] if feat_map else "peak_lift_pct"
+            m2_feat_names = feat_map.get(first_target, [])
+            X2 = _synthesize_m2_features(influencer, m2_feat_names)
+            
+            peak_lift_pct = float(bundle["peak_lift_pct"].predict(X2)[0])
+            decay_lambda = float(bundle["decay_lambda"].predict(X2)[0])
+            
+            # Predict the curve
+            curve_targets = ["lift_6h", "lift_24h", "lift_48h", "lift_72h", "lift_96h"]
+            lift_curve = []
+            for t in curve_targets:
+                if t in bundle:
+                    lift_curve.append(float(bundle[t].predict(X2)[0]))
+                else:
+                    lift_curve.append(0.0)
+            
+            plat = str(influencer.get("platform", "social")).capitalize()
+            insights.append(f"{plat} campaign peak at {peak_lift_pct:.1f}% uplift (ML Pred).")
+        else:
+            insights.append("⚠️ Influencer models not loaded — using zero uplift.")
     else:
         insights.append("No active campaign — baseline demand applies.")
-        insights.append("Activate a campaign to unlock influencer uplift.")
 
-    insights.append(
-        f"{city.title()} growth adds ~{city_extra_units:.0f} extra units "
-        f"({city_growth_rate_pct}% urban trend)."
-    )
+    # 3. City Growth Model (Conti / LGBM)
+    mc = models.get("conti")
+    mc_feats = models.get("conti_feats")
+    if mc and mc_feats:
+        Xc = _synthesize_conti_features(city, product_id, date, mc_feats)
+        city_extra_units = float(mc.predict(Xc)[0])
+        insights.append(f"City trend units optimized via Conti LGBM model.")
+    else:
+        city_extra_units = 5.0 # Fallback
+        insights.append("⚠️ City growth using fallback (Conti model not loaded).")
+
+    # Composite Calculations
+    influencer_lift_units = round(baseline * (peak_lift_pct / 100.0), 2)
+    final_demand = round(max(0.0, baseline + influencer_lift_units + city_extra_units), 2)
 
     return {
         "final_demand": final_demand,
         "breakdown": {
-            "baseline": baseline,
+            "baseline": round(baseline, 2),
             "influencer_lift_units": influencer_lift_units,
-            "city_growth_units": city_extra_units,
+            "city_growth_units": round(city_extra_units, 2),
         },
         "uplift": {
             "enabled": uplift_enabled,
-            "peak_lift_pct": peak_lift_pct,
-            "lift_curve": lift_curve,
-            "decay_lambda": decay_lambda,
+            "peak_lift_pct": round(peak_lift_pct, 2),
+            "lift_curve": [round(v, 3) for v in lift_curve],
+            "decay_lambda": round(decay_lambda, 4),
         },
         "insights": insights,
     }

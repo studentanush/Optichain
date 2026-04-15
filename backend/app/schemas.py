@@ -7,6 +7,7 @@ class HealthResponse(BaseModel):
     ok: bool
     model1_loaded: bool
     model2_targets_loaded: int
+    conti_model_loaded: bool
     demand_predictions_present: bool
     inventory_present: bool
     signals_present: bool

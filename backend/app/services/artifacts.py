@@ -67,3 +67,25 @@ def try_load_model2_bundle() -> tuple[dict[str, Any], dict[str, list[str]], list
         except Exception as e:
             msgs.append(f"MODEL2 {t}: {e}")
     return models, feat_map, msgs
+
+
+def try_load_conti_model() -> tuple[Any | None, list[str] | None, list[str]]:
+    """Loads the city-growth (conti) model and its features."""
+    msgs: list[str] = []
+    mp = settings.conti_model_path()
+    fp = settings.conti_features_path()
+    if not mp.is_file():
+        msgs.append(f"Missing CONTI model artifact: {mp}")
+        return None, None, msgs
+    import json
+
+    try:
+        model = joblib.load(mp)
+        feats = None
+        if fp.is_file():
+            with open(fp, encoding="utf-8") as f:
+                feats = json.load(f)
+        return model, feats, msgs
+    except Exception as e:
+        msgs.append(f"Failed to load CONTI model: {e}")
+        return None, None, msgs

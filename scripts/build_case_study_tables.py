@@ -52,13 +52,13 @@ def _predict_model1(df: pd.DataFrame, root: Path) -> pd.Series:
     mp = root / "ws_model" / "best_model.pkl"
     fp = root / "ws_model" / "feature_cols.pkl"
     if not mp.is_file() or not fp.is_file():
-        print("[warn] MODEL1 pickles missing — using 7-day rolling mean of units_sold as predicted_units.")
+        print("[warn] MODEL1 pickles missing  using 7-day rolling mean of units_sold as predicted_units.")
         return df.groupby("sku_id")["units_sold"].transform(lambda s: s.rolling(7, min_periods=1).mean())
     model = joblib.load(mp)
     feats = list(joblib.load(fp))
     missing = [c for c in feats if c not in df.columns]
     if missing:
-        print(f"[warn] ml_ready_data missing columns {missing[:5]}... — falling back to rolling mean.")
+        print(f"[warn] ml_ready_data missing columns {missing[:5]}...  falling back to rolling mean.")
         return df.groupby("sku_id")["units_sold"].transform(lambda s: s.rolling(7, min_periods=1).mean())
     x = df[feats].replace([np.inf, -np.inf], np.nan).fillna(0)
     pred = model.predict(x)
@@ -88,7 +88,7 @@ def _build_inventory(df: pd.DataFrame, root: Path) -> pd.DataFrame:
     for sku in sku_list:
         rr = float(stats.loc[stats["sku_id"] == sku, "run_rate"].iloc[0])
         for w in warehouses:
-            lead = int(rng.integers(35, 75))  # ~5–10+ weeks
+            lead = int(rng.integers(35, 75))  # ~510+ weeks
             # Split stock across warehouses
             base = rr * lead * rng.uniform(0.6, 1.4)
             stock = max(10.0, base * rng.uniform(0.4, 1.2))

@@ -27,6 +27,8 @@ _state: dict[str, Any] = {
     "feature_cols": None,
     "model2": {},
     "model2_feats": {},
+    "conti_model": None,
+    "conti_feats": None,
     "load_messages": [],
 }
 
@@ -39,7 +41,10 @@ async def lifespan(_: FastAPI):
     m2, m2f, m2msgs = artifacts.try_load_model2_bundle()
     _state["model2"] = m2
     _state["model2_feats"] = m2f
-    _state["load_messages"] = msgs + m2msgs
+    mc, mcf, mcmsgs = artifacts.try_load_conti_model()
+    _state["conti_model"] = mc
+    _state["conti_feats"] = mcf
+    _state["load_messages"] = msgs + m2msgs + mcmsgs
     yield
 
 
@@ -70,10 +75,12 @@ def health() -> HealthResponse:
     if not pred:
         msgs.append("Run scripts/build_case_study_tables.py to create analytics/demand_with_predictions.csv")
     m1_ok = _state["model1"] is not None and _state["feature_cols"] is not None
+    mc_ok = _state["conti_model"] is not None
     return HealthResponse(
         ok=pred and inv and sig,
         model1_loaded=m1_ok,
         model2_targets_loaded=len(_state["model2"]),
+        conti_model_loaded=mc_ok,
         demand_predictions_present=pred,
         inventory_present=inv,
         signals_present=sig,
@@ -263,5 +270,13 @@ def demand_forecast(body: ForecastRequest) -> ForecastResponse:
         date=body.date,
         influencer=body.influencer.model_dump() if body.influencer else None,
         campaign_active=body.campaign_active,
+        models={
+            "model1": _state["model1"],
+            "model1_feats": _state["feature_cols"],
+            "model2_bundle": _state["model2"],
+            "model2_feats": _state["model2_feats"],
+            "conti": _state["conti_model"],
+            "conti_feats": _state["conti_feats"],
+        },
     )
     return ForecastResponse(**result)

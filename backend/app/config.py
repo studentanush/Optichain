@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     features_engineered_file: str = "features_engineered.csv"
     analytics_dir: str = "analytics"
     case_study_data_dir: str = "data"
+    conti_model_dir: str = "models"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     def root(self) -> Path:
@@ -58,6 +59,12 @@ class Settings(BaseSettings):
 
     def influencer_sample_path(self) -> Path:
         return self.root() / self.analytics_dir / "influencer_sample.csv"
+
+    def conti_model_path(self) -> Path:
+        return self.root() / self.conti_model_dir / "conti_model.pkl"
+
+    def conti_features_path(self) -> Path:
+        return self.root() / self.conti_model_dir / "conti_features.json"
 
     def cors_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
