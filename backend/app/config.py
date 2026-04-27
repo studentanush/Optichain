@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     analytics_dir: str = "analytics"
     case_study_data_dir: str = "data"
     conti_model_dir: str = "models"
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    cors_origins: str = "*"
 
     def root(self) -> Path:
         if self.project_root is not None:

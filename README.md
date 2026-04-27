@@ -86,6 +86,21 @@ npm install
 npm run dev
 ```
 
+### 4. Deployment (Free Tier)
+This project is fully configured for free-tier cloud deployments.
+
+**Backend (Render.com):**
+1. Connect your repository to Render.
+2. The included `render.yaml` Blueprint will automatically detect the backend and configure the build/start commands.
+3. No further configuration is needed!
+
+**Frontend (Vercel):**
+1. Connect your repository to Vercel and select the `frontend` directory.
+2. In the Vercel dashboard, add an Environment Variable:
+   - **Name**: `VITE_API_URL`
+   - **Value**: `https://your-backend-url.onrender.com` (replace with your actual Render URL).
+3. The included `vercel.json` ensures client-side routing works out of the box.
+
 ---
 
 ## 🛠️ Feature Showcase
