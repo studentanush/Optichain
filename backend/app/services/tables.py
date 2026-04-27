@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+from functools import lru_cache
 
 import pandas as pd
 
@@ -17,11 +18,13 @@ def _read_csv(path: Path, **kwargs: Any) -> pd.DataFrame | None:
         return None
 
 
+@lru_cache(maxsize=1)
 def load_demand_predictions() -> pd.DataFrame | None:
     df = _read_csv(settings.demand_predictions_path(), parse_dates=["date"])
     return df
 
 
+@lru_cache(maxsize=1)
 def load_sales_fallback() -> pd.DataFrame | None:
     """If analytics missing, use ml_ready with units_sold only (no predictions)."""
     p = settings.ml_ready_path()
@@ -34,18 +37,22 @@ def load_sales_fallback() -> pd.DataFrame | None:
     return df
 
 
+@lru_cache(maxsize=1)
 def load_inventory() -> pd.DataFrame | None:
     return _read_csv(settings.inventory_path())
 
 
+@lru_cache(maxsize=1)
 def load_signals() -> pd.DataFrame | None:
     return _read_csv(settings.signals_path(), parse_dates=["date"])
 
 
+@lru_cache(maxsize=1)
 def load_influencer_sample() -> pd.DataFrame | None:
     return _read_csv(settings.influencer_sample_path())
 
 
+@lru_cache(maxsize=1)
 def load_influencer_metrics() -> dict | None:
     import json
 
