@@ -8,18 +8,8 @@ venv/
 *.egg-info/
 .pytest_cache/
 
-# ML artifacts (regenerate locally)
-ws_demand_dataset/
-ws_model/*.pkl
-models/*.pkl
-scaler.pkl
-features_engineered.csv
-training_dataset_full.csv
-
-# Generated analytics / case-study tables
-analytics/
-data/inventory.csv
-data/signals.csv
+# ML artifacts and data are included for deployment
+# (They are small enough to be tracked by Git)
 
 # Node
 frontend/node_modules/

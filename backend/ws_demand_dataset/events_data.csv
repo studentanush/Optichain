@@ -1,0 +1,34 @@
+event_name,event_date,pre_impact_window,post_impact_window,affected_brands,affected_categories
+Thanksgiving,2022-11-24,28,3,WS,"Cookware,Bakeware,Serveware,Cutlery"
+Black Friday,2022-11-25,21,5,ALL,ALL
+Cyber Monday,2022-11-28,14,3,ALL,ALL
+Christmas,2022-12-25,35,10,ALL,ALL
+New Year,2023-01-01,14,5,ALL,"Cookware,Decor,Bedding"
+Valentines Day,2022-02-14,14,3,"WS,PB","Cookware,Decor,Lighting"
+Mothers Day,2022-05-08,21,3,"WS,PB","Cookware,Bakeware,Serveware"
+Super Bowl,2022-02-13,14,2,WS,"Cookware,Serveware,Electrics"
+Wedding Season,2022-05-15,45,14,"WS,PB",ALL
+Back to College,2022-08-01,35,7,PB,"Dorm,Bedding,Lighting"
+Labor Day,2022-09-07,14,3,"WE,PB","Furniture,Rugs"
+Thanksgiving,2023-11-23,28,3,WS,"Cookware,Bakeware,Serveware,Cutlery"
+Black Friday,2023-11-24,21,5,ALL,ALL
+Cyber Monday,2023-11-27,14,3,ALL,ALL
+Christmas,2023-12-25,35,10,ALL,ALL
+New Year,2024-01-01,14,5,ALL,"Cookware,Decor,Bedding"
+Valentines Day,2023-02-14,14,3,"WS,PB","Cookware,Decor,Lighting"
+Mothers Day,2023-05-14,21,3,"WS,PB","Cookware,Bakeware,Serveware"
+Super Bowl,2023-02-12,14,2,WS,"Cookware,Serveware,Electrics"
+Wedding Season,2023-05-15,45,14,"WS,PB",ALL
+Back to College,2023-08-01,35,7,PB,"Dorm,Bedding,Lighting"
+Labor Day,2023-09-07,14,3,"WE,PB","Furniture,Rugs"
+Thanksgiving,2024-11-28,28,3,WS,"Cookware,Bakeware,Serveware,Cutlery"
+Black Friday,2024-11-29,21,5,ALL,ALL
+Cyber Monday,2024-12-02,14,3,ALL,ALL
+Christmas,2024-12-25,35,10,ALL,ALL
+New Year,2025-01-01,14,5,ALL,"Cookware,Decor,Bedding"
+Valentines Day,2024-02-14,14,3,"WS,PB","Cookware,Decor,Lighting"
+Mothers Day,2024-05-12,21,3,"WS,PB","Cookware,Bakeware,Serveware"
+Super Bowl,2024-02-11,14,2,WS,"Cookware,Serveware,Electrics"
+Wedding Season,2024-05-15,45,14,"WS,PB",ALL
+Back to College,2024-08-01,35,7,PB,"Dorm,Bedding,Lighting"
+Labor Day,2024-09-07,14,3,"WE,PB","Furniture,Rugs"

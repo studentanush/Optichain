@@ -1,0 +1,11 @@
+segment_id,segment_name,ltv_tier,channel,is_gift_buyer,is_registry_buyer,conversion_rate
+SEG-01,Luxury Self-Buyer,high,online,False,False,0.9
+SEG-02,Gift Buyer Premium,high,online,True,False,0.85
+SEG-03,Registry Buyer,high,online,True,True,0.95
+SEG-04,In-Store Loyalist,high,store,False,False,0.88
+SEG-05,Catalog Buyer,medium,catalog,False,False,0.75
+SEG-06,Aspirational Buyer,medium,online,False,False,0.7
+SEG-07,Gift Buyer Standard,medium,online,True,False,0.72
+SEG-08,Dorm/College Buyer,low,online,False,False,0.65
+SEG-09,New Customer,low,online,False,False,0.6
+SEG-10,Deal Seeker,low,online,False,False,0.55

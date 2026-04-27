@@ -1,0 +1,31 @@
+brand_id,brand_name,category,subcategory,sku_id,sku_name,base_demand,price_tier
+WS,Williams-Sonoma,Cookware,Cast Iron,WS-CI-001,Le Creuset Dutch Oven 5.5qt,30,luxury
+WS,Williams-Sonoma,Cookware,Cast Iron,WS-CI-002,Staub Cocotte 4qt,25,luxury
+WS,Williams-Sonoma,Cookware,Stainless,WS-SS-001,All-Clad D3 10pc Set,20,luxury
+WS,Williams-Sonoma,Cookware,Stainless,WS-SS-002,Demeyere Atlantis Skillet,18,luxury
+WS,Williams-Sonoma,Bakeware,Cake Pans,WS-BK-001,Nordic Ware Bundt Pan,45,premium
+WS,Williams-Sonoma,Bakeware,Sheet Pans,WS-BK-002,USA Pan Half Sheet,60,premium
+WS,Williams-Sonoma,Electrics,Stand Mixers,WS-EL-001,KitchenAid Artisan 5qt,35,luxury
+WS,Williams-Sonoma,Electrics,Blenders,WS-EL-002,Vitamix A3500,15,luxury
+WS,Williams-Sonoma,Serveware,Platters,WS-SW-001,Pillivuyt Oval Platter,40,premium
+WS,Williams-Sonoma,Serveware,Entertaining,WS-SW-002,Juliska Berry Thread Bowl Set,35,premium
+WS,Williams-Sonoma,Cutlery,Knife Sets,WS-CU-001,Wusthof Classic 7pc Block,22,luxury
+WS,Williams-Sonoma,Cutlery,Scissors,WS-CU-002,Joyce Chen Unlimited Scissors,55,premium
+PB,Pottery Barn,Bedding,Duvet Covers,PB-BD-001,Belgian Flax Linen Duvet,28,luxury
+PB,Pottery Barn,Bedding,Sheet Sets,PB-BD-002,Organic Sateen Sheet Set,45,premium
+PB,Pottery Barn,Furniture,Sofas,PB-FU-001,Comfort Square Arm Sofa,5,luxury
+PB,Pottery Barn,Furniture,Accent Chairs,PB-FU-002,Remy Swivel Chair,8,luxury
+PB,Pottery Barn,Decor,Throws,PB-DC-001,Faux Fur Throw Blanket,65,premium
+PB,Pottery Barn,Decor,Candles,PB-DC-002,Volcano Candle Set,80,premium
+PB,Pottery Barn,Dorm,Bedding,PB-DR-001,Essential Dorm Bedding Bundle,55,premium
+PB,Pottery Barn,Dorm,Storage,PB-DR-002,Canvas Storage Bin Set,70,standard
+PB,Pottery Barn,Lighting,Table Lamps,PB-LT-001,Tilda Table Lamp,20,premium
+PB,Pottery Barn,Lighting,Floor Lamps,PB-LT-002,Callum Arc Floor Lamp,12,luxury
+WE,West Elm,Furniture,Sofas,WE-FU-001,Andes Sofa,7,premium
+WE,West Elm,Furniture,Dining Tables,WE-FU-002,Emmerson Dining Table,6,premium
+WE,West Elm,Decor,Pillows,WE-DC-001,Velvet Lumbar Pillow Set,75,standard
+WE,West Elm,Decor,Art,WE-DC-002,Abstract Canvas Print,30,premium
+WE,West Elm,Bedding,Duvet Covers,WE-BD-001,Organic Cotton Percale Duvet,35,premium
+WE,West Elm,Bedding,Quilts,WE-BD-002,Stripe Organic Cotton Quilt,28,premium
+WE,West Elm,Rugs,Area Rugs,WE-RG-001,Jute Boucle Rug 8x10,15,premium
+WE,West Elm,Rugs,Runners,WE-RG-002,Carved Geo Runner,22,standard

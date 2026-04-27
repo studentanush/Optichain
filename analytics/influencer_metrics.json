@@ -1,0 +1,48 @@
+{
+  "targets": {
+    "lift_6h": {
+      "rmse": 6.3444013525876315,
+      "mae": 4.967962695821893,
+      "n": 3500
+    },
+    "lift_24h": {
+      "rmse": 10.506565317134141,
+      "mae": 8.271338005883889,
+      "n": 3500
+    },
+    "lift_48h": {
+      "rmse": 13.63643145935814,
+      "mae": 10.64394513768728,
+      "n": 3500
+    },
+    "lift_72h": {
+      "rmse": 15.980105454990264,
+      "mae": 12.467518226040966,
+      "n": 3500
+    },
+    "lift_96h": {
+      "rmse": 17.375800976753915,
+      "mae": 13.588430312064412,
+      "n": 3500
+    },
+    "peak_lift_pct": {
+      "rmse": 2.2832121882220258,
+      "mae": 1.7965717274447224,
+      "n": 3500
+    },
+    "decay_lambda": {
+      "rmse": 0.03902588614392337,
+      "mae": 0.030919278844158758,
+      "n": 3500
+    }
+  },
+  "best_models": {
+    "lift_6h": "HistGradientBoostingRegressor",
+    "lift_24h": "HistGradientBoostingRegressor",
+    "lift_48h": "HistGradientBoostingRegressor",
+    "lift_72h": "HistGradientBoostingRegressor",
+    "lift_96h": "HistGradientBoostingRegressor",
+    "peak_lift_pct": "HistGradientBoostingRegressor",
+    "decay_lambda": "HistGradientBoostingRegressor"
+  }
+}
