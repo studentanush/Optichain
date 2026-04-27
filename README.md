@@ -1,92 +1,127 @@
-# Supply chain analytics platform
+# 🚀 Control Tower: AI-Driven Supply Chain Intelligence
 
-This project is a full-stack supply chain analytics dashboard that integrates multiple machine learning models to provide demand forecasting, inventory risk management, and what-if simulations. It connects a Python FastAPI backend with a React-based frontend dashboard.
+[![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)](https://github.com/studentanush/Cummins_Hackathon)
+[![Tech Stack](https://img.shields.io/badge/Stack-FastAPI%20|%20React%20|%20XGBoost-blueviolet?style=for-the-badge)](https://github.com/studentanush/Cummins_Hackathon)
 
-## Machine learning pipeline
+**Control Tower** is a state-of-the-art supply chain analytics platform designed for the modern retail landscape. By fusing traditional baseline demand with real-time influencer signals and city-level economic growth indicators, it provides a high-fidelity "Control Tower" view of inventory risks and demand surges.
 
-The system uses a three-model pipeline to generate high-fidelity demand forecasts:
+---
 
-1.  **Baseline Model (Model 1)**: An XGBoost regressor trained on historical tabular demand data. It captures multi-year seasonality and product-specific trends.
-2.  **Influencer Uplift (Model 2)**: A multi-target regressor bundle that predicts peak uplift and decay curves triggered by influencer marketing campaigns across various social platforms.
-3.  **City Growth (Conti Model)**: A LightGBM model that incorporates external economic indicators (income velocity, home prices, and affordability ratios) to adjust demand forecasts based on local city-level growth.
+## 💎 The Problem & Our Solution
 
-## Prerequisites
+Traditional supply chain models often fail to capture **short-term volatility** (influencer surges) and **localized economic shifts** (city-level growth). 
 
-- Python 3.10+
-- Node.js 18+
-- Active internet connection for Google Fonts and Tailwind CSS
+**Our Innovation:** A modular **3-Model Pipeline** that aggregates:
+1.  **Macro Baseline**: Long-term seasonality and trend (XGBoost).
+2.  **Influencer Pulse**: Hyper-local demand spikes triggered by social media marketing (Multi-target Regressors).
+3.  **City Dynamics**: External economic indicators like income velocity and housing affordability (LightGBM).
 
-## Getting started
+---
 
-### 1. Initialize data and models
+## 🏗️ Technical Architecture
 
-Before running the dashboard, you must generate the required datasets and train the models. From the repository root, run the following scripts in sequence:
+```mermaid
+graph TD
+    subgraph "Data Layers"
+        D1[(Historical Sales)] --> P1[ETL Pipeline]
+        D2[(Social Signals)] --> P1
+        D3[(Economic Data)] --> P1
+    end
 
+    subgraph "ML Control Tower (The Agent)"
+        P1 --> M1[Model 1: XGBoost Baseline]
+        P1 --> M2[Model 2: Influencer Uplift]
+        P1 --> M3[Model 3: City Growth]
+        
+        M1 --> AG[Composite Forecast Agent]
+        M2 --> AG
+        M3 --> AG
+    end
+
+    subgraph "Intelligent Frontend"
+        AG --> API[FastAPI REST Layer]
+        API --> FE[React / Vite Dashboard]
+        FE --> V1[Recharts Visualization]
+        FE --> V2[Risk Matrix]
+        FE --> V3[What-If Simulation]
+    end
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- **Python 3.10+**
+- **Node.js 18+**
+- **Modern Browser** (Chrome/Edge recommended)
+
+### 2. Environment Setup
 ```bash
-# Train the City Growth (Conti) model
-python conti_script.py
+# Clone the repository
+git clone https://github.com/studentanush/Cummins_Hackathon.git
+cd Cummins_Hackathon
 
-# Train the Baseline XGBoost model
-python model1_script.py
-
-# Train the Influencer Uplift model bundle (demo version)
+# Initialize data and train models
+python scripts/conti_script.py
+python scripts/model1_script.py
 python scripts/seed_and_train_influencer_demo.py
-
-# Generate analytics tables and inventory datasets
 python scripts/build_case_study_tables.py
 ```
 
-### 2. Start the backend
-
-The backend is built with FastAPI and handles all ML inference and data aggregation.
-
+### 3. Launch Services
+**Backend (FastAPI):**
 ```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+# Windows: .venv\Scripts\activate | Linux: source .venv/bin/activate
 pip install -r requirements.txt
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --reload
 ```
 
-### 3. Start the frontend
-
-The frontend is a React application powered by Vite and Tailwind CSS.
-
+**Frontend (React + Vite):**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-The dashboard will be available at http://127.0.0.1:5173.
+---
 
-## Main features
+## 🛠️ Feature Showcase
 
-### Demand forecasting agent
-The agent provides a real-time forecast by combining the outputs of the three-model pipeline. It includes visual feedback such as loading overlays and success notifications to ensure high-fidelity interactions.
+### 🔮 High-Fidelity Forecasting Agent
+Combines the 3-model pipeline to predict daily demand with granular precision. Includes a **decay-aware lift curve** for influencer campaigns, allowing buyers to see exactly how demand will taper over 96 hours.
 
-### Unified risk register
-Automatically identifies SKUs at risk of stockout or overstock by comparing current inventory levels against lead times and predicted demand volatility.
+### ⚠️ Unified Risk Register
+A proactive inventory monitor that flags SKUs for **Stockout** or **Overstock** based on lead-time demand volatility and current inventory levels.
 
-### What-if simulation
-Allows for real-time inventory drawdown simulations. Unlike simple linear models, this simulation uses the specific daily variable forecasts from the XGBoost model to show detailed projected stock levels over a 14-day horizon.
+### 🧪 Model-Driven What-If Simulations
+Simulate real-world scenarios (e.g., "What if this influencer campaign reaches 1M followers?") and see the immediate impact on inventory drawdown over a 14-day horizon.
 
-## API reference
+---
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| GET | /api/health | Verifies status of models and data files |
-| GET | /api/kpis/dashboard | Returns key supply chain metrics |
-| GET | /api/meta/skus | Provides a list of available products |
-| GET | /api/demand/timeseries | Actual vs predicted demand history |
-| POST | /api/demand/forecast | Executes the 3-model forecasting agent |
-| POST | /api/simulate | Runs a model-driven inventory simulation |
-| GET | /api/brief/weekly | Generates an AI-driven buyer brief |
+## 📂 Project Structure
 
-## Project structure
+| Directory | Description |
+| :--- | :--- |
+| `backend/` | FastAPI application, ML inference logic, and API endpoints. |
+| `frontend/` | React/TypeScript dashboard with Tailwind CSS and Framer Motion. |
+| `notebooks/` | Research & development Jupyter notebooks for ML models. |
+| `scripts/` | Data engineering, seeding, and model training utilities. |
+| `models/` | Serialized model artifacts (.pkl). |
+| `data/` | Raw and engineered datasets (CSV). |
 
-- **backend/**: FastAPI application, schemas, and ML inference services.
-- **frontend/**: React components, Recharts visualizations, and dashboard pages.
-- **models/**: Trained model artifacts (.pkl).
-- **analytics/**: Processed data tables and prediction results.
-- **scripts/**: ETL processes and data sanitization utilities.
+---
+
+## 🔮 Strategic Roadmap
+
+As we continue to scale the Control Tower platform for enterprise supply chains, our immediate focus areas include:
+
+- [ ] **Generative AI Orchestration**: Integrating advanced LLMs to replace rule-based heuristics with narrative, actionable insights on demand drivers and risk mitigation.
+- [ ] **Enterprise MLOps**: Migrating the 3-model training pipeline to a managed cloud environment for automated retraining and endpoint deployment.
+- [ ] **Embedded Business Intelligence**: Integrating deep, interactive BI dashboards for executive-level reporting and cross-functional visibility.
+- [ ] **Cloud-Native Data Warehousing**: Transitioning from flat-file storage to a highly scalable, columnar data warehouse to support real-time analytics across millions of SKUs.
+
+---
+*Built for the future of intelligent supply chain management.*
