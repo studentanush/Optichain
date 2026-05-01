@@ -340,9 +340,23 @@ export default function App() {
         ) : null}
 
         {loading ? (
-          <div className="animate-pulse space-y-4">
-            <div className="h-32 bg-surface-raised rounded-xl" />
-            <div className="h-64 bg-surface-raised rounded-xl" />
+          <div className="flex flex-col items-center justify-center py-32 text-center">
+            <div className="relative w-24 h-24 mb-8">
+              <div className="absolute inset-0 border-t-2 border-violet-500 rounded-full animate-spin" style={{ animationDuration: '1.5s' }} />
+              <div className="absolute inset-2 border-r-2 border-cyan-500 rounded-full animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
+              <div className="absolute inset-4 border-b-2 border-emerald-500 rounded-full animate-spin" style={{ animationDuration: '1s' }} />
+              <div className="absolute inset-0 flex items-center justify-center text-2xl">🤖</div>
+            </div>
+            <h2 className="font-display text-2xl font-bold text-white mb-3">Waking up AI Control Tower...</h2>
+            <p className="text-slate-400 max-w-md mx-auto text-sm leading-relaxed mb-6">
+              Establishing connection to the 3-model forecasting engine. 
+              <br/><span className="text-violet-400/80 italic">(Since this is hosted on a free tier, the first load may take ~50 seconds to wake the server).</span>
+            </p>
+            <div className="flex gap-2">
+              <span className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0s' }} />
+              <span className="w-2 h-2 rounded-full bg-cyan-500 animate-bounce" style={{ animationDelay: '0.15s' }} />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0.3s' }} />
+            </div>
           </div>
         ) : !ready ? (
           <EmptyState health={health} />
