@@ -276,12 +276,12 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="border-b border-surface-border bg-surface-raised/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-center md:text-left">
             <p className="text-xs text-accent font-medium tracking-wide uppercase">Williams-Sonoma style demo</p>
             <h1 className="font-display text-2xl font-semibold text-white">Supply chain control tower</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             {/* Page tabs */}
             <div className="flex rounded-lg border border-surface-border bg-surface overflow-hidden">
               <button
@@ -332,7 +332,7 @@ export default function App() {
       {activePage === 'forecast' ? (
         <DemandForecastPage />
       ) : (
-        <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+        <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10 space-y-8 md:space-y-10">
         {loadErr ? (
           <div className="rounded-lg border border-danger/40 bg-danger/10 text-danger px-4 py-3">
             {loadErr} — is the backend running on port 8000?
@@ -473,7 +473,7 @@ export default function App() {
                 <p className="text-slate-500 text-sm">
                   Linear drawdown using recent predicted/actual run-rate — illustrates expedite vs extra PO.
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs text-slate-500">SKU</label>
                     <select

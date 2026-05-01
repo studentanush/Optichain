@@ -277,7 +277,7 @@ export default function DemandForecastPage() {
 
       {/* ── Page header ── */}
       <div className="border-b border-white/5 bg-white/[0.02] backdrop-blur">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-5 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs px-2 py-0.5 rounded-full border border-violet-500/40 bg-violet-500/10 text-violet-300 font-medium tracking-wide">
@@ -292,7 +292,7 @@ export default function DemandForecastPage() {
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">Real-time predictions · Baseline × Influencer Uplift × City Growth</p>
           </div>
-          <div className="flex items-center gap-3 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-slate-500">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
               Model 1 — Baseline
@@ -309,7 +309,7 @@ export default function DemandForecastPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 grid lg:grid-cols-5 gap-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 grid lg:grid-cols-5 gap-6 md:gap-8">
         {/* ── LEFT: Input panel ── */}
         <div className="lg:col-span-2 space-y-6">
           <GlowCard>
@@ -327,7 +327,7 @@ export default function DemandForecastPage() {
                   placeholder="SKU-WS-001"
                 />
               </Field>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="City">
                   <select
                     id="forecast-city"
@@ -383,7 +383,7 @@ export default function DemandForecastPage() {
                     placeholder="INF-42"
                   />
                 </Field>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Followers">
                     <input
                       id="forecast-followers"
@@ -502,7 +502,7 @@ export default function DemandForecastPage() {
               </GlowCard>
 
               {/* KPI grid */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <StatBadge label="Baseline" value={result.breakdown.baseline} unit="u" color="violet" />
                 <StatBadge label="Lift Units" value={result.breakdown.influencer_lift_units} unit="u" color="cyan" />
                 <StatBadge label="City Growth" value={result.breakdown.city_growth_units} unit="u" color="emerald" />
@@ -577,7 +577,7 @@ export default function DemandForecastPage() {
                   <strong className="text-violet-400">Generate Forecast</strong> to run the three-model pipeline.
                 </p>
               </div>
-              <div className="grid grid-cols-3 gap-3 mt-4 w-full max-w-md text-xs text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 w-full max-w-md text-xs text-center">
                 {[
                   { icon: '📊', label: 'Model 1', desc: 'Baseline demand by product × city × date' },
                   { icon: '📣', label: 'Model 2', desc: 'Influencer lift curve & peak uplift %' },
