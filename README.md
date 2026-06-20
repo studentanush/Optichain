@@ -110,7 +110,7 @@ Simulate real-world scenarios (e.g., "What if this influencer campaign reaches 1
 | `notebooks/` | Research & development Jupyter notebooks for ML models. |
 | `scripts/` | Data engineering, seeding, and model training utilities. |
 | `models/` | Serialized model artifacts (.pkl). |
-| `data/` | Raw and engineered datasets (CSV). |
+| `data/` | Raw and engineered datasets (CSV).  |
 
 ---
 
